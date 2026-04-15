@@ -1,3 +1,16 @@
+---
+metadata:
+  hermes:
+    config:
+      - key: wiki_path
+        description: Directory containing the compiled CRM wiki (people/, companies/, interactions/, schema/, index.md, _config.md)
+        default: "~/crm"
+        prompt: Where should your CRM wiki live?
+      - key: raw_path
+        description: Directory for raw interaction notes the agent scans during ingest
+        default: "~/crm/raw"
+        prompt: Where are your raw notes (daily journals, meeting notes)?
+---
 # Personal CRM Wiki
 
 You maintain a personal CRM as interlinked markdown files.
@@ -6,10 +19,11 @@ that accumulate knowledge over time.
 
 ## Setup
 
-On first use, if `crm/` does not exist, create this structure:
+On first use, if `${wiki_path}` does not exist, create this
+structure:
 
 ```text
-crm/
+${wiki_path}/
   _config.md          (copy default config)
   index.md            (empty index template)
   people/
@@ -21,14 +35,29 @@ crm/
     company.md        (company template)
 ```
 
-Never create or modify files outside of `crm/` unless writing
-a new raw note to a configured `raw_sources` directory.
+Never create or modify files outside of `${wiki_path}` unless
+writing a new raw note to a configured `raw_sources` directory
+(resolved relative to `${raw_path}`).
 
 ## Configuration
 
-Read `crm/_config.md` frontmatter before every operation.
-It defines: raw_sources paths, exclude paths, decay thresholds,
-stale_thread_days, and default_strength.
+Resolve `wiki_path` and `raw_path` at the start of every operation
+in this priority order:
+
+1. Hermes context — values injected from `~/.hermes/config.yaml`
+   under `skills.config.wiki_path` and `skills.config.raw_path`.
+   Takes precedence when present.
+2. `_config.md` override — read `./crm/_config.md` frontmatter;
+   if `wiki_path` or `raw_path` keys are non-empty they override
+   layer 3. If `wiki_path` points elsewhere, re-read the real
+   config from `${wiki_path}/_config.md`. Escape hatch for
+   non-Hermes agents (Claude Code, Codex, OpenCode).
+3. Defaults — `wiki_path = ./crm`, `raw_path = ./raw` relative
+   to cwd.
+
+Then read `${wiki_path}/_config.md` for behavior settings:
+raw_sources (paths resolved relative to `${raw_path}`), exclude
+paths, decay thresholds, stale_thread_days, and default_strength.
 
 ## Operations
 
@@ -42,7 +71,8 @@ Trigger: "ingest [file]", "I just met...", "add contact",
 Steps:
 1. Resolve input (file path, freeform text, or directory scan)
 2. If freeform text, save as a new `.md` file in the first
-   raw_sources directory: `{YYYY-MM-DD}-{slug}.md`
+   raw_sources directory:
+   `${raw_path}/{raw_sources[0]}/{YYYY-MM-DD}-{slug}.md`
 3. Extract: people (name, role, company), companies, dates,
    commitments (who → what → by when), topics, tags,
    relationship signals (intro source, warmth)
@@ -51,10 +81,10 @@ Steps:
      append interaction to history, update open_threads,
      increment interaction_count. FLAG contradictions with
      `> [!warning]` callouts - never silently overwrite.
-   - New person: create from `crm/schema/person.md` template
+   - New person: create from `${wiki_path}/schema/person.md` template
 5. Update/create company pages
-6. Prepend entry to `crm/interactions/log.md`
-7. Regenerate `crm/index.md`
+6. Prepend entry to `${wiki_path}/interactions/log.md`
+7. Regenerate `${wiki_path}/index.md`
 8. Report: created, updated, contradictions, new threads
 
 Idempotency: check for duplicate interactions by date +
@@ -65,7 +95,7 @@ participants before appending.
 Trigger: any question about contacts, relationships, network.
 
 Steps:
-1. Read `crm/index.md` -> find relevant pages
+1. Read `${wiki_path}/index.md` -> find relevant pages
 2. Read those pages
 3. Synthesize answer from compiled wiki pages (not raw sources)
 4. Use `[[wiki-links]]` in your answer
@@ -88,7 +118,7 @@ Check for:
    relationship_strength (desc) × days_since_contact (desc)
 
 Report findings grouped by category. Do NOT auto-modify pages.
-Update `crm/index.md` stats and last lint date.
+Update `${wiki_path}/index.md` stats and last lint date.
 
 ## Formatting Rules
 
@@ -111,5 +141,5 @@ Update `crm/index.md` stats and last lint date.
 4. Contradiction is signal, not error. Surface it, don't hide it.
 5. Keep open_threads current. Close or escalate, don't let them rot.
 6. Relationship strength decays. Lint surfaces this.
-7. Never modify files outside `crm/` without explicit user request.
+7. Never modify files outside `${wiki_path}` without explicit user request.
 8. When in doubt, ask the user rather than guessing.

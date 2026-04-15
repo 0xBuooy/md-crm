@@ -27,6 +27,18 @@ cp -r .crm-skill/crm ./crm
 
 Then edit `crm/_config.md` to point `raw_sources` at your note directories, such as `daily/` or `meetings/`.
 
+## Configuration
+
+The skill needs two paths: `wiki_path` (where the compiled wiki lives) and `raw_path` (where raw interaction notes are written and scanned).
+
+### Hermes
+
+`hermes skills install 0xbuooy/agent-crm` prompts for both paths on first install and stores them in `~/.hermes/config.yaml` under `skills.config`. See the [Hermes skills docs](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills) for changing them later.
+
+### Other agents (Claude Code, Codex, OpenCode)
+
+Either clone into `~/crm` and run the agent from there (the default layout), or set `wiki_path` / `raw_path` in `crm/_config.md` to point elsewhere. Empty values fall back to `./crm` and `./raw` relative to the current working directory.
+
 ## Usage
 
 Open your agent and talk naturally:
