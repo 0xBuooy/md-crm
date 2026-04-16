@@ -1,8 +1,15 @@
 ---
 # LLM CRM Wiki Configuration
 
+# Optional explicit paths (non-Hermes fallback).
+# Leave empty to use cwd-relative defaults (./crm, ./raw).
+# Ignored when running under Hermes — Hermes injects these from
+# ~/.hermes/config.yaml under skills.config.
+wiki_path: ""
+raw_path: ""
+
 # Directories to scan for raw interaction notes (vault mode)
-# Paths are relative to the vault/workspace root
+# Paths are resolved relative to raw_path above
 # Glob patterns supported
 raw_sources:
   - "daily/"
@@ -32,3 +39,7 @@ default_strength: "warm"
 
 Edit the frontmatter above to customize behavior.
 The agent reads this file before every operation.
+
+Path precedence: Hermes `~/.hermes/config.yaml` (under
+`skills.config`) > this file's `wiki_path` / `raw_path` keys >
+cwd-relative defaults (`./crm`, `./raw`).
