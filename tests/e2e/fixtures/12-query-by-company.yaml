@@ -1,0 +1,28 @@
+name: query-by-company
+description: After ingesting two people at one company, query lists both.
+steps:
+  - id: ingest-first
+    input: |
+      Met Ivy Chen, data scientist at Snowflake, at a conference.
+    expect:
+      files:
+        - path: "people/ivy-chen.md"
+          frontmatter:
+            company: { contains: "Snowflake" }
+
+  - id: ingest-second
+    input: |
+      Grabbed a beer with Marco Rossi, SRE at Snowflake. He and Ivy are on
+      different teams but they sit next to each other.
+    expect:
+      files:
+        - path: "people/marco-rossi.md"
+          frontmatter:
+            company: { contains: "Snowflake" }
+
+  - id: query
+    input: "Who do I know at Snowflake?"
+    expect:
+      response_contains: ["Ivy", "Marco"]
+      no_new_files: true
+      no_modified_files: true

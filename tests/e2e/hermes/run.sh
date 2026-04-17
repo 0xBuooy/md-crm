@@ -45,7 +45,8 @@ echo "[hermes-e2e] wiki=$WIKI_PATH raw=$RAW_PATH"
 echo "[hermes-e2e] agent-cmd=$AGENT_CMD"
 
 python3 "$TESTS_DIR/lib/run_transcript.py" \
-  --transcript "$TESTS_DIR/fixtures/transcript.yaml" \
+  --transcripts-dir "$TESTS_DIR/fixtures" \
+  ${E2E_FILTER:+--filter "$E2E_FILTER"} \
   --agent-cmd "$AGENT_CMD" \
   --wiki-path "$WIKI_PATH" \
   --raw-path "$RAW_PATH"

@@ -1,0 +1,26 @@
+name: query-last-discussed
+description: After multiple interactions, "what did we last discuss" surfaces the most recent topic.
+steps:
+  - id: older-interaction
+    input: |
+      2026-01-10: Coffee with Theo Santos at Vercel. We talked about edge
+      compute pricing models.
+    expect:
+      files:
+        - path: "people/theo-santos.md"
+
+  - id: recent-interaction
+    input: |
+      2026-04-12: Lunch with Theo Santos. He walked me through Vercel's new
+      AI SDK and wants feedback on the streaming API.
+    expect:
+      files:
+        - path: "people/theo-santos.md"
+          body_any_of: ["AI SDK", "streaming"]
+
+  - id: query
+    input: "What did Theo Santos and I last discuss?"
+    expect:
+      response_any_of: ["AI SDK", "streaming", "Vercel"]
+      no_new_files: true
+      no_modified_files: true

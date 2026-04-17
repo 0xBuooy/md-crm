@@ -1,0 +1,14 @@
+name: slug-normalization
+description: Unusual names — titles, hyphens, accents — still produce clean slugs.
+steps:
+  - id: ingest
+    input: |
+      Zoom with Dr. María García-Smith, chief scientist at DeepLabs. We
+      discussed retrieval benchmarks. Her team is hiring.
+    expect:
+      files:
+        - path: "people/maria-garcia-smith.md"
+          frontmatter:
+            slug: { equals: "maria-garcia-smith" }
+            name: { contains: "García-Smith" }
+            company: { contains: "DeepLabs" }

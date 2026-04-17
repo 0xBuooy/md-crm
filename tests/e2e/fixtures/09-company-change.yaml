@@ -1,0 +1,33 @@
+name: company-change
+description: Person changes companies across two notes — flagged as a change.
+steps:
+  - id: initial
+    input: |
+      Coffee with Elena Vasquez. She's a product designer at Airbnb.
+      Loves working on trust & safety flows.
+    expect:
+      files:
+        - path: "people/elena-vasquez.md"
+          frontmatter:
+            company: { contains: "Airbnb" }
+        - path: "companies/airbnb.md"
+          frontmatter:
+            people: { contains: "elena-vasquez" }
+
+  - id: change
+    input: |
+      Caught up with Elena Vasquez again. She left Airbnb last month and
+      just started at Notion as a senior designer on the AI team.
+    expect:
+      files:
+        - path: "people/elena-vasquez.md"
+          frontmatter:
+            company: { contains: "Notion" }
+          # The skill contract says contradictions get a warning callout OR
+          # an interaction-history entry noting the change. Either is fine.
+          file_any_of:
+            - "> [!warning]"
+            - "Airbnb"
+        - path: "companies/notion.md"
+          frontmatter:
+            people: { contains: "elena-vasquez" }

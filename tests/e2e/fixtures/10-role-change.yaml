@@ -1,0 +1,24 @@
+name: role-change
+description: Promotion within the same company updates role, keeps company.
+steps:
+  - id: first
+    input: |
+      Met Yusuf Adekunle, senior engineer at GitHub, at the platform meetup.
+      Focused on Actions performance.
+    expect:
+      files:
+        - path: "people/yusuf-adekunle.md"
+          frontmatter:
+            role: { contains: "senior engineer" }
+            company: { contains: "GitHub" }
+
+  - id: promotion
+    input: |
+      Yusuf Adekunle just got promoted to staff engineer at GitHub. Still on
+      the Actions team. Great news.
+    expect:
+      files:
+        - path: "people/yusuf-adekunle.md"
+          frontmatter:
+            role: { contains: "staff" }
+            company: { contains: "GitHub" }

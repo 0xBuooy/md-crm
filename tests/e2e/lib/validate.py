@@ -92,3 +92,35 @@ def validate_file(wiki_path: pathlib.Path, spec: dict, errors: list[str]) -> Non
             errors.append(
                 f"{spec['path']}: body missing any of {spec['body_any_of']!r}"
             )
+
+    if "file_contains" in spec:
+        needles = spec["file_contains"]
+        if isinstance(needles, str):
+            needles = [needles]
+        for n in needles:
+            if not _body_has(text, n):
+                errors.append(f"{spec['path']}: file missing substring {n!r}")
+
+    if "file_any_of" in spec:
+        if not any(_body_has(text, n) for n in spec["file_any_of"]):
+            errors.append(
+                f"{spec['path']}: file missing any of {spec['file_any_of']!r}"
+            )
+
+    if "file_regex" in spec:
+        patterns = spec["file_regex"]
+        if isinstance(patterns, str):
+            patterns = [patterns]
+        for p in patterns:
+            if not re.search(p, text):
+                errors.append(f"{spec['path']}: file does not match regex {p!r}")
+
+    if "file_not_contains" in spec:
+        needles = spec["file_not_contains"]
+        if isinstance(needles, str):
+            needles = [needles]
+        for n in needles:
+            if _body_has(text, n):
+                errors.append(
+                    f"{spec['path']}: file unexpectedly contains {n!r}"
+                )

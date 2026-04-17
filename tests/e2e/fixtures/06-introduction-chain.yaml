@@ -1,0 +1,26 @@
+name: introduction-chain
+description: An intro between two existing contacts creates network backlinks.
+steps:
+  - id: ingest-sara
+    input: |
+      Met Sara Okafor at the robotics meetup. She's a hardware lead at
+      Boston Dynamics. Wants to be connected with people doing embodied AI.
+    expect:
+      files:
+        - path: "people/sara-okafor.md"
+          frontmatter:
+            company: { contains: "Boston Dynamics" }
+
+  - id: ingest-dev
+    input: |
+      Coffee with Dev Patel, research scientist at DeepMind working on
+      embodied agents. I mentioned Sara Okafor at Boston Dynamics might be
+      a good person for him to meet.
+    expect:
+      files:
+        - path: "people/dev-patel.md"
+          frontmatter:
+            company: { contains: "DeepMind" }
+          file_contains: "sara-okafor"
+        - path: "people/sara-okafor.md"
+          file_any_of: ["dev-patel", "Dev Patel"]

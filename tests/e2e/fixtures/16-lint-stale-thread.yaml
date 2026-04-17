@@ -1,0 +1,28 @@
+name: lint-stale-thread
+description: An open thread older than stale_thread_days (14) should be flagged.
+steps:
+  - id: ingest-old-thread
+    input: |
+      2026-03-01: Lunch with Omar Khalil, founder of Prism Analytics. I told
+      him I would send over our pricing sheet by the end of the week. Still
+      haven't sent it.
+    expect:
+      files:
+        - path: "people/omar-khalil.md"
+          frontmatter:
+            open_threads:
+              any_of:
+                - { contains: "pricing" }
+                - { contains: "sheet" }
+
+  - id: lint
+    input: "lint"
+    expect:
+      response_any_of:
+        - "Omar"
+        - "pricing"
+        - "stale"
+        - "follow-up"
+        - "follow up"
+      no_new_people: true
+      no_new_companies: true

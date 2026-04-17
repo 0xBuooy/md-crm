@@ -1,0 +1,26 @@
+name: lint-decay
+description: A warm contact last-seen > 30 days ago should be flagged as decaying.
+steps:
+  - id: ingest-old-contact
+    input: |
+      2026-02-05: Coffee with Hannah Levi, VP Eng at Retool. Warm catch-up,
+      nothing urgent.
+    expect:
+      files:
+        - path: "people/hannah-levi.md"
+          frontmatter:
+            last_contact: { regex: "2026-02-05" }
+            relationship_strength: { contains: "warm" }
+
+  - id: lint
+    input: "lint"
+    expect:
+      response_any_of:
+        - "Hannah"
+        - "decay"
+        - "warm"
+        - "cold"
+        - "follow-up"
+        - "follow up"
+      no_new_people: true
+      no_new_companies: true

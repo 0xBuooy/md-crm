@@ -1,0 +1,21 @@
+name: query-missing-entity
+description: Querying for someone the CRM doesn't know should offer to add them, not fabricate.
+steps:
+  - id: query-unknown
+    input: "Who is Kazuo Ishiguro and what do I know about him?"
+    expect:
+      response_any_of:
+        - "no record"
+        - "not in"
+        - "don't have"
+        - "don't see"
+        - "would you like"
+        - "want me to"
+        - "create"
+      response_not_contains:
+        - "last_contact"
+        - "interaction_count"
+      files_absent:
+        - "people/kazuo-ishiguro.md"
+      no_new_people: true
+      no_new_companies: true

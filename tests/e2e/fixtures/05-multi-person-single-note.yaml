@@ -1,0 +1,29 @@
+name: multi-person-single-note
+description: One note mentioning three people creates three person pages.
+steps:
+  - id: ingest
+    input: |
+      Dinner with the OpenAI research crew: Lena Huang (research scientist),
+      Tomás Pérez (applied engineer), and Noah Kim (PM). We discussed
+      evaluation benchmarks for agentic systems.
+    expect:
+      files:
+        - path: "people/lena-huang.md"
+          frontmatter:
+            slug: { equals: "lena-huang" }
+            company: { contains: "OpenAI" }
+        - path: "people/tomas-perez.md"
+          frontmatter:
+            slug: { contains: "tomas-perez" }
+            company: { contains: "OpenAI" }
+        - path: "people/noah-kim.md"
+          frontmatter:
+            slug: { equals: "noah-kim" }
+            company: { contains: "OpenAI" }
+        - path: "companies/openai.md"
+          frontmatter:
+            people:
+              any_of:
+                - { contains: "lena-huang" }
+                - { contains: "tomas-perez" }
+                - { contains: "noah-kim" }

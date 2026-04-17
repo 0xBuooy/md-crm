@@ -1,0 +1,23 @@
+name: basic-coffee-chat
+description: Plain ingest of a single person at a single company.
+steps:
+  - id: ingest
+    input: |
+      I just had coffee with Jane Doe. She's a PM at Stripe working on AI
+      agents for payments. Met at the AI Tinkerers meetup.
+    expect:
+      response_any_of: ["jane", "stripe", "created", "added"]
+      files:
+        - path: "people/jane-doe.md"
+          frontmatter:
+            name: { contains: "Jane Doe" }
+            slug: { equals: "jane-doe" }
+            company: { contains: "Stripe" }
+            interaction_count: { regex: "^[1-9][0-9]*$" }
+          body_any_of: ["Key Context", "Interaction History"]
+        - path: "companies/stripe.md"
+          frontmatter:
+            name: { contains: "Stripe" }
+            people: { contains: "jane-doe" }
+        - path: "interactions/log.md"
+          body_contains: "Jane Doe"

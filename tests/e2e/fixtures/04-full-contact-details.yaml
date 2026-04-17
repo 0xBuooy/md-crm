@@ -1,0 +1,19 @@
+name: full-contact-details
+description: Email, phone, LinkedIn, and location should all be captured.
+steps:
+  - id: ingest
+    input: |
+      Had lunch with Priya Shah in Berlin today. She runs partnerships at
+      N26. Email priya@n26.com, mobile +49 30 5557 0123, LinkedIn
+      linkedin.com/in/priyashah. We talked about fintech regulation in the EU.
+    expect:
+      files:
+        - path: "people/priya-shah.md"
+          frontmatter:
+            slug: { equals: "priya-shah" }
+            company: { contains: "N26" }
+            location: { contains: "Berlin" }
+          file_contains:
+            - "priya@n26.com"
+            - "linkedin.com/in/priyashah"
+          file_regex: "\\+49[- ]?30[- ]?5557[- ]?0123"

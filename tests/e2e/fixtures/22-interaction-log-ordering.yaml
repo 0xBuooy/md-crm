@@ -1,0 +1,21 @@
+name: interaction-log-ordering
+description: Global interactions/log.md is reverse-chronological (newest first).
+steps:
+  - id: older
+    input: |
+      2026-02-20: Coffee with Juno Park, designer at Arc Browser, about
+      keyboard-first UX.
+    expect:
+      files:
+        - path: "interactions/log.md"
+          file_contains: "2026-02-20"
+
+  - id: newer
+    input: |
+      2026-04-15: Walk with Juno Park around the waterfront. We sketched
+      a new tab-grouping model.
+    expect:
+      files:
+        - path: "interactions/log.md"
+          # The 04-15 entry must appear BEFORE the 02-20 entry in the file.
+          file_regex: "2026-04-15[\\s\\S]*2026-02-20"

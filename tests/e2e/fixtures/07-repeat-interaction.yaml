@@ -1,0 +1,25 @@
+name: repeat-interaction
+description: Two separate ingests for the same person increment interaction_count.
+steps:
+  - id: first-meeting
+    input: |
+      Grabbed coffee with Rohan Mehta today. He's a staff engineer at Figma
+      working on multiplayer infrastructure.
+    expect:
+      files:
+        - path: "people/rohan-mehta.md"
+          frontmatter:
+            interaction_count: { equals: 1 }
+
+  - id: second-meeting
+    input: |
+      Ran into Rohan Mehta again at the Figma office. He walked me through
+      their new CRDT engine. Sharp guy.
+    expect:
+      files:
+        - path: "people/rohan-mehta.md"
+          frontmatter:
+            interaction_count: { regex: "^[2-9][0-9]*$" }
+          body_any_of:
+            - "CRDT"
+            - "multiplayer"

@@ -1,0 +1,18 @@
+name: lint-readonly
+description: Lint must not modify person or company pages (only index stats).
+steps:
+  - id: seed
+    input: |
+      2026-04-10: Call with Farah Ahmed, head of BD at Clay. Talked about
+      GTM playbooks.
+    expect:
+      files:
+        - path: "people/farah-ahmed.md"
+
+  - id: lint
+    input: "lint"
+    expect:
+      # Lint may regenerate index.md and the interactions log, but it must
+      # not touch person or company pages.
+      no_new_people: true
+      no_new_companies: true
