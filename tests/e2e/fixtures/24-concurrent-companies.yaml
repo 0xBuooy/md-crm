@@ -1,0 +1,32 @@
+name: concurrent-companies
+description: |
+  A person with simultaneous roles at multiple companies (e.g. full-time at
+  one, advisor at another) should appear on both company pages. Distinct
+  from 09-company-change, which is a sequential switch.
+steps:
+  - id: ingest
+    input: |
+      Call with Simone Tang. She's CTO at Foxglove and also an advisor at
+      Skyhook Robotics — splits her week roughly 80/20. We talked about
+      sensor-fusion pipelines.
+    expect:
+      files:
+        - path: "people/simone-tang.md"
+          frontmatter:
+            # Primary company goes in `company`; the other role should
+            # appear somewhere on the page (body or frontmatter).
+            company:
+              any_of:
+                - { contains: "Foxglove" }
+                - { contains: "Skyhook" }
+          file_contains:
+            - "Foxglove"
+            - "Skyhook"
+        - path: "companies/foxglove.md"
+          frontmatter:
+            people: { contains: "simone-tang" }
+        # Agent may slug this as `skyhook.md` or `skyhook-robotics.md`.
+        - path: "companies/skyhook*.md"
+          frontmatter:
+            people: { contains: "simone-tang" }
+          glob_count: { min: 1, max: 1 }

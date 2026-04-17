@@ -1,8 +1,12 @@
 name: query-missing-entity
-description: Querying for someone the CRM doesn't know should offer to add them, not fabricate.
+description: |
+  Querying for someone the CRM doesn't know should offer to add them, not
+  fabricate from the model's training knowledge. The subject name is a
+  deliberately improbable combination so the agent is unlikely to have
+  biographical info in its training data and must fall back to the wiki.
 steps:
   - id: query-unknown
-    input: "Who is Kazuo Ishiguro and what do I know about him?"
+    input: "Who is Zephyr Paltridge-Okonkwo and what do I know about them?"
     expect:
       response_any_of:
         - "no record"
@@ -16,6 +20,7 @@ steps:
         - "last_contact"
         - "interaction_count"
       files_absent:
-        - "people/kazuo-ishiguro.md"
+        - "people/zephyr-paltridge-okonkwo.md"
+        - "people/zephyr-paltridge.md"
       no_new_people: true
       no_new_companies: true

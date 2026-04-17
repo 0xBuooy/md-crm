@@ -9,7 +9,7 @@ on the markdown the skill produces — not on the agent's prose.
 
 ```text
 tests/e2e/
-  fixtures/                  one YAML per scenario (22 and growing)
+  fixtures/                  one YAML per scenario (25 and growing)
     01-basic-coffee-chat.yaml
     02-email-captured.yaml
     ...
@@ -45,6 +45,9 @@ tests/e2e/
 | 20 | contradiction-warning      | conflicting facts → `> [!warning]` callout      |
 | 21 | tags-extracted             | topics in note populate tags array              |
 | 22 | interaction-log-ordering   | global log stays reverse-chronological          |
+| 23 | raw-note-written           | freeform ingest persists under `raw_path/daily/`|
+| 24 | concurrent-companies       | person with simultaneous roles at two companies |
+| 25 | config-precedence          | decoy `_config.md` can't override agent config  |
 
 ## Running
 
@@ -54,15 +57,18 @@ for whatever provider the agent is configured to use.
 ```bash
 pip install pyyaml
 
-# Hermes — runs all 22 transcripts
+# Hermes — runs all 25 transcripts
 ./tests/e2e/hermes/run.sh
 
-# OpenClaw — runs all 22 transcripts
+# OpenClaw — runs all 25 transcripts
 ./tests/e2e/openclaw/run.sh
 
 # Filter to a subset (matched against filenames)
 E2E_FILTER=09-company ./tests/e2e/hermes/run.sh
 E2E_FILTER=lint       ./tests/e2e/openclaw/run.sh
+
+# Print full stdout + stderr for every step (debugging)
+./tests/e2e/hermes/run.sh -v
 ```
 
 Each wrapper creates an isolated temp dir, points the agent's config at it,
@@ -88,6 +94,12 @@ a single behavior. Shape:
 ```yaml
 name: short-identifier
 description: one-line intent
+setup:                                        # optional
+  write_files:
+    - path: "_config.md"                      # relative to root below
+      root: "wiki"                            # or "raw"; default "wiki"
+      content: |
+        ...seed file contents...
 steps:
   - id: step-name
     input: |
@@ -98,7 +110,9 @@ steps:
       response_not_contains: [...]
       response_regex: "..."
       files:
-        - path: "people/jane-doe.md"         # relative to wiki_path
+        - path: "people/jane-doe.md"         # relative to root below
+          root: "wiki"                       # or "raw"; default "wiki"
+          # `path` may be a glob; the first match is validated.
           frontmatter:
             slug: { equals: "jane-doe" }
             company: { contains: "Stripe" }
@@ -108,6 +122,7 @@ steps:
           file_any_of: [...]
           file_regex: "..."
           file_not_contains: [...]
+          glob_count: { min: 1, max: 1 }     # only with glob path
       files_absent: ["people/ghost.md"]
       no_new_files: true
       no_modified_files: true

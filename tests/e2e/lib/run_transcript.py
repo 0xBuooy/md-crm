@@ -29,6 +29,8 @@ import re
 import shutil
 import subprocess
 import sys
+import textwrap
+import traceback
 
 import yaml
 
@@ -77,13 +79,14 @@ def check_response(response: str, expect: dict, errors: list[str]) -> None:
 
 def check_filesystem(
     wiki: pathlib.Path,
+    raw: pathlib.Path,
     expect: dict,
     before: dict,
     after: dict,
     errors: list[str],
 ) -> None:
     for fs in expect.get("files") or []:
-        validate_file(wiki, fs, errors)
+        validate_file(wiki, raw, fs, errors)
 
     new, modified = diff_snapshots(before, after)
 
@@ -112,8 +115,10 @@ def run_step(
     step: dict,
     agent_cmd: str,
     wiki: pathlib.Path,
+    raw: pathlib.Path,
     before: dict,
     timeout: int,
+    verbose: bool,
 ) -> tuple[list[str], dict]:
     step_id = step.get("id", "step")
     print(f"\n  --- step: {step_id} ---")
@@ -126,21 +131,32 @@ def run_step(
         capture_output=True,
         timeout=timeout,
     )
-    response = proc.stdout + proc.stderr
+    # Assertions run against stdout only. stderr is surfaced separately so
+    # agent log noise (warnings, trace lines) doesn't cause response_* flakes.
+    response = proc.stdout
     if proc.returncode != 0:
         print(f"  [agent exited {proc.returncode}]")
+    if verbose:
+        print(f"  stdout:\n{textwrap.indent(response, '    ')}")
+        if proc.stderr:
+            print(f"  stderr:\n{textwrap.indent(proc.stderr, '    ')}")
+    elif proc.returncode != 0 and proc.stderr:
+        # Always show stderr on failure — essential for debugging.
+        print(f"  stderr:\n{textwrap.indent(proc.stderr, '    ')}")
 
     errors: list[str] = []
     expect = step.get("expect") or {}
     check_response(response, expect, errors)
 
     after = snapshot(wiki)
-    check_filesystem(wiki, expect, before, after, errors)
+    check_filesystem(wiki, raw, expect, before, after, errors)
 
     if errors:
         print(f"  FAIL ({len(errors)}):")
         for e in errors:
             print(f"    - {e}")
+        if not verbose and proc.stderr:
+            print(f"  stderr:\n{textwrap.indent(proc.stderr, '    ')}")
     else:
         print("  OK")
     return errors, after
@@ -152,28 +168,43 @@ def wipe(path: pathlib.Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+def apply_setup(doc: dict, wiki: pathlib.Path, raw: pathlib.Path) -> None:
+    """Write seed files declared in the transcript's optional `setup` block."""
+    setup = doc.get("setup") or {}
+    for spec in setup.get("write_files") or []:
+        root = raw if spec.get("root") == "raw" else wiki
+        path = root / spec["path"]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(spec["content"])
+
+
 def run_transcript(
     transcript_path: pathlib.Path,
     agent_cmd: str,
     wiki: pathlib.Path,
     raw: pathlib.Path,
     timeout: int,
+    verbose: bool,
 ) -> tuple[int, int]:
     """Return (errors, steps_run)."""
     doc = yaml.safe_load(transcript_path.read_text())
     name = doc.get("name", transcript_path.stem)
     print(f"\n=== transcript: {name} ({transcript_path.name}) ===")
     if desc := doc.get("description"):
-        print(f"    {desc}")
+        print(f"    {desc.strip()}")
 
     wipe(wiki)
     wipe(raw)
+    apply_setup(doc, wiki, raw)
 
+    # Seed files are not part of the test's file-change diff.
     snap = snapshot(wiki)
     errors = 0
     steps = doc.get("steps") or []
     for step in steps:
-        step_errs, snap = run_step(step, agent_cmd, wiki, snap, timeout)
+        step_errs, snap = run_step(
+            step, agent_cmd, wiki, raw, snap, timeout, verbose
+        )
         errors += len(step_errs)
     return errors, len(steps)
 
@@ -197,6 +228,10 @@ def main() -> int:
     ap.add_argument("--wiki-path", required=True, type=pathlib.Path)
     ap.add_argument("--raw-path", required=True, type=pathlib.Path)
     ap.add_argument("--timeout", type=int, default=300)
+    ap.add_argument(
+        "-v", "--verbose", action="store_true",
+        help="Print full stdout/stderr for every step",
+    )
     args = ap.parse_args()
 
     wiki = args.wiki_path.resolve()
@@ -213,9 +248,12 @@ def main() -> int:
     results: list[tuple[str, int, int]] = []
     for t in transcripts:
         try:
-            errs, steps = run_transcript(t, args.agent_cmd, wiki, raw, args.timeout)
+            errs, steps = run_transcript(
+                t, args.agent_cmd, wiki, raw, args.timeout, args.verbose
+            )
         except Exception as exc:  # noqa: BLE001
             print(f"  ERROR running {t.name}: {exc}")
+            traceback.print_exc()
             errs, steps = 1, 0
         results.append((t.name, errs, steps))
 

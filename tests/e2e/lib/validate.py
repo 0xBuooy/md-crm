@@ -59,12 +59,55 @@ def _body_has(body: str, needle: str) -> bool:
     return needle.lower() in body.lower()
 
 
-def validate_file(wiki_path: pathlib.Path, spec: dict, errors: list[str]) -> None:
-    path = wiki_path / spec["path"]
+_GLOB_CHARS = set("*?[")
+
+
+def _resolve_path(
+    root: pathlib.Path, spec: dict, errors: list[str]
+) -> pathlib.Path | None:
+    pattern = spec["path"]
     must_exist = spec.get("must_exist", True)
+    if _GLOB_CHARS & set(pattern):
+        matches = sorted(root.glob(pattern))
+        if not matches:
+            if must_exist:
+                errors.append(f"{pattern}: no files match glob")
+            return None
+        # If a scenario wants to pin the exact count of matches, it can use
+        # `glob_count: { min: N, max: M }`.
+        count_spec = spec.get("glob_count")
+        if count_spec:
+            n = len(matches)
+            if "min" in count_spec and n < count_spec["min"]:
+                errors.append(
+                    f"{pattern}: matched {n} file(s), expected min {count_spec['min']}"
+                )
+            if "max" in count_spec and n > count_spec["max"]:
+                errors.append(
+                    f"{pattern}: matched {n} file(s), expected max {count_spec['max']}"
+                )
+        return matches[0]
+    path = root / pattern
     if not path.exists():
         if must_exist:
-            errors.append(f"{spec['path']}: expected to exist")
+            errors.append(f"{pattern}: expected to exist")
+        return None
+    return path
+
+
+def validate_file(
+    wiki_path: pathlib.Path,
+    raw_path: pathlib.Path,
+    spec: dict,
+    errors: list[str],
+) -> None:
+    root_name = spec.get("root", "wiki")
+    root = {"wiki": wiki_path, "raw": raw_path}.get(root_name)
+    if root is None:
+        errors.append(f"{spec['path']}: unknown root {root_name!r}")
+        return
+    path = _resolve_path(root, spec, errors)
+    if path is None:
         return
     text = path.read_text()
     fm, body = parse_frontmatter(text)

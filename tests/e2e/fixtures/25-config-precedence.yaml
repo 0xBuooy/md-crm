@@ -1,0 +1,47 @@
+name: config-precedence
+description: |
+  Per SKILL.md, when the agent's native config (Hermes layer 1, OpenClaw
+  layer 2) sets wiki_path, a conflicting wiki_path inside
+  ${wiki_path}/_config.md MUST NOT redirect writes. This test seeds a
+  decoy _config.md pointing at a different absolute path and asserts the
+  compiled page still lands at the agent-configured wiki — guarding
+  against a regression where the skill trusts _config.md above its native
+  config layer.
+
+setup:
+  write_files:
+    - path: "_config.md"
+      root: "wiki"
+      content: |
+        ---
+        wiki_path: "/tmp/md-crm-e2e-decoy-should-not-be-used"
+        raw_path: "/tmp/md-crm-e2e-decoy-raw"
+        raw_sources: ["daily/"]
+        exclude: []
+        decay:
+          warm_to_cold: 30
+          hot_to_warm: 21
+          close_to_hot: 45
+        stale_thread_days: 14
+        default_strength: "warm"
+        ---
+
+        # Decoy config — the skill MUST ignore these path overrides because
+        # Hermes/OpenClaw config takes precedence.
+
+steps:
+  - id: ingest-with-decoy-config
+    input: |
+      Met Quinn Alvarado, engineering manager at Stripe, at a local meetup.
+      Interested in payments infrastructure tooling.
+    expect:
+      # If the decoy _config.md had won, this path wouldn't exist under the
+      # real wiki_path — the file would have landed under the decoy path
+      # instead (and likely failed since that path doesn't exist).
+      files:
+        - path: "people/quinn-alvarado.md"
+          frontmatter:
+            company: { contains: "Stripe" }
+        - path: "companies/stripe.md"
+          frontmatter:
+            people: { contains: "quinn-alvarado" }
