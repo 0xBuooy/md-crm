@@ -9,7 +9,7 @@ Based on [Karpathy's LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893
 ### New directory
 
 ```bash
-git clone https://github.com/0xbuooy/agent-crm ~/crm
+git clone https://github.com/0xbuooy/md-crm ~/crm
 cd ~/crm
 claude
 ```
@@ -18,11 +18,11 @@ claude
 
 ```bash
 cd ~/your-vault
-git clone https://github.com/0xbuooy/agent-crm .crm-skill
-mkdir -p .claude/skills/crm
-cp .crm-skill/SKILL.md .claude/skills/crm/SKILL.md
-cp .crm-skill/AGENTS.md ./AGENTS.md
-cp -r .crm-skill/crm ./crm
+git clone https://github.com/0xbuooy/md-crm .md-crm-skill
+mkdir -p .claude/skills/md-crm
+cp .md-crm-skill/SKILL.md .claude/skills/md-crm/SKILL.md
+cp .md-crm-skill/AGENTS.md ./AGENTS.md
+cp -r .md-crm-skill/crm ./crm
 ```
 
 Then edit `crm/_config.md` to point `raw_sources` at your note directories, such as `daily/` or `meetings/`.
@@ -33,17 +33,17 @@ The skill needs two paths: `wiki_path` (where the compiled wiki lives) and `raw_
 
 ### Hermes
 
-`hermes skills install 0xbuooy/agent-crm` prompts for both paths on first install and stores them in `~/.hermes/config.yaml` under `skills.config`. See the [Hermes skills docs](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills) for changing them later.
+`hermes skills install 0xbuooy/md-crm` prompts for both paths on first install and stores them in `~/.hermes/config.yaml` under `skills.config`. See the [Hermes skills docs](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills) for changing them later.
 
 ### OpenClaw
 
-Drop the skill into any OpenClaw skill-discovery path (`~/.agents/skills/crm/`, `~/.openclaw/skills/crm/`, or `<workspace>/skills/crm/`). Set paths in `~/.openclaw/openclaw.json`:
+Drop the skill into any OpenClaw skill-discovery path (`~/.agents/skills/md-crm/`, `~/.openclaw/skills/md-crm/`, or `<workspace>/skills/md-crm/`). Set paths in `~/.openclaw/openclaw.json`:
 
 ```json
 {
   "skills": {
     "entries": {
-      "crm": {
+      "md-crm": {
         "enabled": true,
         "config": {
           "wiki_path": "/path/to/your/wiki",

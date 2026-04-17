@@ -1,5 +1,5 @@
 ---
-name: crm
+name: md-crm
 description: Maintain a personal CRM as interlinked markdown files — ingest interactions, query relationships, lint relationship health
 metadata:
   hermes:
@@ -50,8 +50,8 @@ in this priority order:
    under `skills.config.wiki_path` and `skills.config.raw_path`.
    Takes precedence when present.
 2. OpenClaw config — read `~/.openclaw/openclaw.json` and use
-   `skills.entries.crm.config.wiki_path` and
-   `skills.entries.crm.config.raw_path` if set.
+   `skills.entries.md-crm.config.wiki_path` and
+   `skills.entries.md-crm.config.raw_path` if set.
 3. `_config.md` override — read `./crm/_config.md` frontmatter;
    if `wiki_path` or `raw_path` keys are non-empty they override
    layer 4. If `wiki_path` points elsewhere, re-read the real

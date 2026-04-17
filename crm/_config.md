@@ -43,5 +43,5 @@ The agent reads this file before every operation.
 
 Path precedence: Hermes `~/.hermes/config.yaml` (under
 `skills.config`) > OpenClaw `~/.openclaw/openclaw.json` (under
-`skills.entries.crm.config`) > this file's `wiki_path` /
+`skills.entries.md-crm.config`) > this file's `wiki_path` /
 `raw_path` keys > cwd-relative defaults (`./crm`, `.`).
