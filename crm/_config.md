@@ -1,10 +1,11 @@
 ---
 # LLM CRM Wiki Configuration
 
-# Optional explicit paths (non-Hermes fallback).
-# Leave empty to use cwd-relative defaults (./crm, ./raw).
-# Ignored when running under Hermes — Hermes injects these from
-# ~/.hermes/config.yaml under skills.config.
+# Optional explicit paths (fallback for agents without a native
+# config system). Leave empty to use cwd-relative defaults
+# (./crm, .). Ignored when running under Hermes or OpenClaw,
+# which inject these from ~/.hermes/config.yaml or
+# ~/.openclaw/openclaw.json respectively.
 wiki_path: ""
 raw_path: ""
 
@@ -41,5 +42,6 @@ Edit the frontmatter above to customize behavior.
 The agent reads this file before every operation.
 
 Path precedence: Hermes `~/.hermes/config.yaml` (under
-`skills.config`) > this file's `wiki_path` / `raw_path` keys >
-cwd-relative defaults (`./crm`, `./raw`).
+`skills.config`) > OpenClaw `~/.openclaw/openclaw.json` (under
+`skills.entries.crm.config`) > this file's `wiki_path` /
+`raw_path` keys > cwd-relative defaults (`./crm`, `.`).

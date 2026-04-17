@@ -1,4 +1,6 @@
 ---
+name: crm
+description: Maintain a personal CRM as interlinked markdown files — ingest interactions, query relationships, lint relationship health
 metadata:
   hermes:
     config:
@@ -47,13 +49,17 @@ in this priority order:
 1. Hermes context — values injected from `~/.hermes/config.yaml`
    under `skills.config.wiki_path` and `skills.config.raw_path`.
    Takes precedence when present.
-2. `_config.md` override — read `./crm/_config.md` frontmatter;
+2. OpenClaw config — read `~/.openclaw/openclaw.json` and use
+   `skills.entries.crm.config.wiki_path` and
+   `skills.entries.crm.config.raw_path` if set.
+3. `_config.md` override — read `./crm/_config.md` frontmatter;
    if `wiki_path` or `raw_path` keys are non-empty they override
-   layer 3. If `wiki_path` points elsewhere, re-read the real
-   config from `${wiki_path}/_config.md`. Escape hatch for
-   non-Hermes agents (Claude Code, Codex, OpenCode).
-3. Defaults — `wiki_path = ./crm`, `raw_path = ./raw` relative
-   to cwd.
+   layer 4. If `wiki_path` points elsewhere, re-read the real
+   config from `${wiki_path}/_config.md`. Escape hatch for agents
+   without a native config system (Claude Code, Codex).
+4. Defaults — `wiki_path = ./crm`, `raw_path = .` relative to
+   cwd. This preserves vault-root semantics: `raw_sources:
+   ["daily/"]` resolves to `./daily/`.
 
 Then read `${wiki_path}/_config.md` for behavior settings:
 raw_sources (paths resolved relative to `${raw_path}`), exclude

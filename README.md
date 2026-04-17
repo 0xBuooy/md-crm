@@ -35,9 +35,29 @@ The skill needs two paths: `wiki_path` (where the compiled wiki lives) and `raw_
 
 `hermes skills install 0xbuooy/agent-crm` prompts for both paths on first install and stores them in `~/.hermes/config.yaml` under `skills.config`. See the [Hermes skills docs](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills) for changing them later.
 
+### OpenClaw
+
+Drop the skill into any OpenClaw skill-discovery path (`~/.agents/skills/crm/`, `~/.openclaw/skills/crm/`, or `<workspace>/skills/crm/`). Set paths in `~/.openclaw/openclaw.json`:
+
+```json
+{
+  "skills": {
+    "entries": {
+      "crm": {
+        "enabled": true,
+        "config": {
+          "wiki_path": "/path/to/your/wiki",
+          "raw_path": "/path/to/your/notes"
+        }
+      }
+    }
+  }
+}
+```
+
 ### Other agents (Claude Code, Codex, OpenCode)
 
-Either clone into `~/crm` and run the agent from there (the default layout), or set `wiki_path` / `raw_path` in `crm/_config.md` to point elsewhere. Empty values fall back to `./crm` and `./raw` relative to the current working directory.
+Either clone into `~/crm` and run the agent from there (the default layout), or set `wiki_path` / `raw_path` in `crm/_config.md` to point elsewhere. Empty values fall back to `./crm` and `.` (cwd) so existing `raw_sources` like `daily/` continue to resolve relative to the vault root.
 
 ## Usage
 
