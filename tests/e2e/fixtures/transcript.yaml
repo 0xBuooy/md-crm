@@ -1,0 +1,85 @@
+# md-crm e2e transcript.
+#
+# Each step feeds `input` to the agent on stdin and asserts against:
+#   - the agent's stdout response (best-effort, LLM output is non-deterministic)
+#   - the markdown files produced under ${wiki_path}
+#
+# Matching rules for `frontmatter` and `response_contains`:
+#   - bare string         -> case-insensitive substring match
+#   - { equals: "..." }   -> exact string match
+#   - { contains: "..." } -> case-insensitive substring match
+#   - { regex: "..." }    -> regex search
+#   - { any_of: [...] }   -> any child matcher matches
+
+name: md-crm smoke
+summary: |
+  Ingest two coffee-chat notes, verify person/company pages are compiled and
+  cross-linked, run a read-only query, then a lint. Assertions focus on
+  filesystem invariants the skill is contracted to maintain, not on exact
+  LLM prose.
+
+steps:
+  - id: ingest-jane
+    description: First ingest creates a new person + company + log entry.
+    input: |
+      I just had coffee with Jane Doe. She's a PM at Stripe working on AI
+      agents for payments. She wants an intro to Marcus Chen next week.
+      We met at the AI Tinkerers meetup.
+    expect:
+      response_any_of: ["jane", "stripe", "created", "added"]
+      files:
+        - path: "people/jane-doe.md"
+          frontmatter:
+            name: { contains: "Jane Doe" }
+            slug: { equals: "jane-doe" }
+            company: { contains: "Stripe" }
+            interaction_count: { regex: "^[1-9][0-9]*$" }
+          body_any_of: ["Key Context", "Interaction History"]
+        - path: "companies/stripe.md"
+          frontmatter:
+            name: { contains: "Stripe" }
+            people: { contains: "jane-doe" }
+        - path: "interactions/log.md"
+          body_contains: "Jane Doe"
+
+  - id: ingest-marcus
+    description: Second ingest introduces a second person Jane had mentioned.
+    input: |
+      Had a call with Marcus Chen today. He's head of partnerships at Plaid.
+      I told him about Jane Doe at Stripe who wants an intro for AI payments.
+      He said he'd love to connect with her next week.
+    expect:
+      files:
+        - path: "people/marcus-chen.md"
+          frontmatter:
+            slug: { equals: "marcus-chen" }
+            company: { contains: "Plaid" }
+        - path: "companies/plaid.md"
+          frontmatter:
+            name: { contains: "Plaid" }
+            people: { contains: "marcus-chen" }
+        # Jane's page should pick up the network link to Marcus.
+        - path: "people/jane-doe.md"
+          body_contains: "marcus-chen"
+
+  - id: query-stripe
+    description: Read-only query should not touch the filesystem.
+    input: "Who do I know at Stripe?"
+    expect:
+      response_contains: "Jane"
+      no_new_files: true
+      no_modified_files: true
+
+  - id: lint
+    description: Lint surfaces health signals without modifying person/company pages.
+    input: "lint"
+    expect:
+      response_any_of:
+        - "follow-up"
+        - "follow up"
+        - "open thread"
+        - "decay"
+        - "stale"
+        - "orphan"
+      no_new_people: true
+      no_new_companies: true
