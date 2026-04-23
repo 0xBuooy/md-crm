@@ -1,43 +1,28 @@
-# LLM CRM Wiki
+# MD CRM
+
+![MD CRM](assets/md-crm.jpg)
 
 A personal CRM that lives in your terminal. Drop notes about people you meet, and your AI agent compiles them into a structured, interlinked wiki.
 
 Based on [Karpathy's LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) pattern.
 
-## Quickstart
+## Install
 
-### New directory
-
-```bash
-git clone https://github.com/0xbuooy/md-crm ~/crm
-cd ~/crm
-claude
-```
-
-### Inside existing Obsidian vault
+### Hermes (one-liner)
 
 ```bash
-cd ~/your-vault
-git clone https://github.com/0xbuooy/md-crm .md-crm-skill
-mkdir -p .claude/skills/md-crm
-cp .md-crm-skill/SKILL.md .claude/skills/md-crm/SKILL.md
-cp .md-crm-skill/AGENTS.md ./AGENTS.md
-cp -r .md-crm-skill/crm ./crm
+hermes skills install 0xbuooy/md-crm
 ```
 
-Then edit `crm/_config.md` to point `raw_sources` at your note directories, such as `daily/` or `meetings/`.
+Prompts for `wiki_path` and `raw_path` on first install and stores them in `~/.hermes/config.yaml` under `skills.config`. See the [Hermes skills docs](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills) for changing them later.
 
-## Configuration
+### OpenClaw (one-liner)
 
-The skill needs two paths: `wiki_path` (where the compiled wiki lives) and `raw_path` (where raw interaction notes are written and scanned).
+```bash
+git clone https://github.com/0xbuooy/md-crm ~/.openclaw/skills/md-crm
+```
 
-### Hermes
-
-`hermes skills install 0xbuooy/md-crm` prompts for both paths on first install and stores them in `~/.hermes/config.yaml` under `skills.config`. See the [Hermes skills docs](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills) for changing them later.
-
-### OpenClaw
-
-Drop the skill into any OpenClaw skill-discovery path (`~/.agents/skills/md-crm/`, `~/.openclaw/skills/md-crm/`, or `<workspace>/skills/md-crm/`). Set paths in `~/.openclaw/openclaw.json`:
+Then add paths to `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -55,9 +40,29 @@ Drop the skill into any OpenClaw skill-discovery path (`~/.agents/skills/md-crm/
 }
 ```
 
-### Other agents (Claude Code, Codex, OpenCode)
+OpenClaw also discovers skills from `~/.agents/skills/` and `<workspace>/skills/` if you prefer a different location.
 
-Either clone into `~/crm` and run the agent from there (the default layout), or set `wiki_path` / `raw_path` in `crm/_config.md` to point elsewhere. Empty values fall back to `./crm` and `.` (cwd) so existing `raw_sources` like `daily/` continue to resolve relative to the vault root.
+### Claude Code / Codex / OpenCode
+
+New directory:
+
+```bash
+git clone https://github.com/0xbuooy/md-crm ~/crm
+cd ~/crm && claude     # or: codex / opencode
+```
+
+Inside an existing Obsidian vault:
+
+```bash
+cd ~/your-vault
+git clone https://github.com/0xbuooy/md-crm .md-crm-skill
+mkdir -p .claude/skills/md-crm
+cp .md-crm-skill/SKILL.md .claude/skills/md-crm/SKILL.md
+cp .md-crm-skill/AGENTS.md ./AGENTS.md
+cp -r .md-crm-skill/crm ./crm
+```
+
+Then edit `crm/_config.md` to point `raw_sources` at your note directories (`daily/`, `meetings/`, etc.). Empty `wiki_path` / `raw_path` fall back to `./crm` and `.` (cwd) so `raw_sources` resolve relative to the vault root.
 
 ## Usage
 
