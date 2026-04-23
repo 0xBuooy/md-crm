@@ -1,0 +1,20 @@
+name: tags-extracted
+description: Topics mentioned in a note should populate the tags array.
+steps:
+  - id: ingest
+    input: |
+      Coffee with Sana Iqbal, founder of CipherLane. We covered zero-knowledge
+      proofs, ML privacy, and federated learning. She's fundraising a seed
+      round.
+    expect:
+      files:
+        - path: "people/sana-iqbal.md"
+          frontmatter:
+            tags:
+              any_of:
+                - { contains: "zero-knowledge" }
+                - { contains: "privacy" }
+                - { contains: "federated" }
+                - { contains: "ml" }
+                - { contains: "crypto" }
+                - { contains: "fundraising" }

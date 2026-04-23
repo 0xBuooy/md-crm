@@ -69,6 +69,23 @@ Open your agent and talk naturally:
 
 **Lint**: "lint" - surfaces decaying relationships, stale threads, and missing pages.
 
+## Local Testing
+
+The e2e suite runs in Docker — no host install of Hermes or OpenClaw
+required, just Docker and an API key.
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+make docker-build        # first time
+make test-docker         # both suites
+
+# Interactive shell inside the agent image
+make docker-shell-hermes
+```
+
+See `tests/e2e/README.md` for filters, fixture authoring, and the matcher
+reference.
+
 ## How It Works
 
 1. You describe interactions or point at existing notes

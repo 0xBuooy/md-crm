@@ -1,0 +1,26 @@
+# Hermes e2e runner image.
+#
+# Provides: hermes CLI, python3 + pyyaml, git, bash, curl. The repo is mounted
+# at /workspace at runtime; nothing from the repo is COPYied in at build time,
+# so iterating on fixtures or skill prompts does not invalidate the cache.
+
+FROM python:3.12-slim-bookworm
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      git ca-certificates bash curl \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV VIRTUAL_ENV=/opt/venv \
+    PATH=/opt/venv/bin:/usr/local/bin:/usr/bin:/bin
+
+RUN uv venv "$VIRTUAL_ENV" \
+ && uv pip install \
+      pyyaml \
+      "hermes-agent @ git+https://github.com/NousResearch/hermes-agent.git"
+
+WORKDIR /workspace
+
+CMD ["bash", "tests/e2e/hermes/run.sh"]

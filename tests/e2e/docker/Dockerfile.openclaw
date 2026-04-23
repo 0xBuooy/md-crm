@@ -1,0 +1,26 @@
+# OpenClaw e2e runner image.
+#
+# The openclaw installer uses npm under the hood, so we start from a node base
+# and layer python + uv on top for the test runner.
+
+FROM node:20-bookworm-slim
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      python3 python3-venv git ca-certificates bash curl \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV VIRTUAL_ENV=/opt/venv \
+    PATH=/opt/openclaw/bin:/opt/venv/bin:/usr/local/bin:/usr/bin:/bin
+
+RUN uv venv "$VIRTUAL_ENV" --python python3 \
+ && uv pip install pyyaml
+
+RUN curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install-cli.sh \
+      | bash -s -- --prefix /opt/openclaw --install-method npm --no-onboard
+
+WORKDIR /workspace
+
+CMD ["bash", "tests/e2e/openclaw/run.sh"]

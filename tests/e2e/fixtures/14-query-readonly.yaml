@@ -1,0 +1,16 @@
+name: query-readonly
+description: A query after an ingest must not modify any file.
+steps:
+  - id: seed
+    input: |
+      Met Grace Wong, PM at Shopify, at the commerce summit.
+    expect:
+      files:
+        - path: "people/grace-wong.md"
+
+  - id: query
+    input: "Tell me about Grace Wong."
+    expect:
+      response_contains: "Grace"
+      no_new_files: true
+      no_modified_files: true

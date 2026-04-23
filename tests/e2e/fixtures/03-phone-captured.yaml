@@ -1,0 +1,14 @@
+name: phone-captured
+description: A phone number should be preserved verbatim on the person page.
+steps:
+  - id: ingest
+    input: |
+      Called Ben Ortiz at +1-415-555-0182 to follow up on the Notion rollout.
+      He's VP of Ops at Anthropic. Quick 10-minute sync.
+    expect:
+      files:
+        - path: "people/ben-ortiz.md"
+          frontmatter:
+            slug: { equals: "ben-ortiz" }
+            company: { contains: "Anthropic" }
+          file_regex: "\\+?1[-.\\s]?\\(?415\\)?[-.\\s]?555[-.\\s]?0182"

@@ -1,0 +1,23 @@
+name: commitments-and-followups
+description: Commitments in a note become open_threads on the person page.
+steps:
+  - id: ingest
+    input: |
+      Call with Maya Brennan, head of growth at Ramp. I promised to send
+      her our onboarding deck by Friday, and she'll intro me to Eric Glyman
+      next week.
+    expect:
+      files:
+        - path: "people/maya-brennan.md"
+          frontmatter:
+            company: { contains: "Ramp" }
+            open_threads:
+              any_of:
+                - { contains: "deck" }
+                - { contains: "onboarding" }
+                - { contains: "intro" }
+                - { contains: "Eric" }
+          file_any_of:
+            - "Friday"
+            - "deck"
+            - "intro"

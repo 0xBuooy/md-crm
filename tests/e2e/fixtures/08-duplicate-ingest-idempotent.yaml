@@ -1,0 +1,26 @@
+name: duplicate-ingest-idempotent
+description: Ingesting the exact same note twice should not double the log.
+steps:
+  - id: first-ingest
+    input: |
+      2026-04-17: Zoom with Harper Lin, design lead at Linear, about
+      iconography standards. 30 min.
+    expect:
+      files:
+        - path: "people/harper-lin.md"
+          frontmatter:
+            interaction_count: { equals: 1 }
+
+  - id: duplicate-ingest
+    input: |
+      2026-04-17: Zoom with Harper Lin, design lead at Linear, about
+      iconography standards. 30 min.
+    expect:
+      # Skill contract: "check for duplicate interactions by date + participants".
+      files:
+        - path: "people/harper-lin.md"
+          frontmatter:
+            interaction_count: { equals: 1 }
+        - path: "interactions/log.md"
+          # Exactly one log entry for Harper on this date.
+          file_regex: "2026-04-17[^\\n]*Harper Lin(?![^\\n]*\\n[^\\n]*2026-04-17[^\\n]*Harper Lin)"

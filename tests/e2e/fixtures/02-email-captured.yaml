@@ -1,0 +1,14 @@
+name: email-captured
+description: An email address in the note should land somewhere on the person page.
+steps:
+  - id: ingest
+    input: |
+      Met Alex Rivera today, senior engineer at Datadog. Her email is
+      alex.rivera@datadog.com, she's keen on observability for ML pipelines.
+    expect:
+      files:
+        - path: "people/alex-rivera.md"
+          frontmatter:
+            slug: { equals: "alex-rivera" }
+            company: { contains: "Datadog" }
+          file_contains: "alex.rivera@datadog.com"

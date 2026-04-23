@@ -1,0 +1,24 @@
+name: contradiction-warning
+description: Two notes with conflicting facts about the same person surface a warning callout.
+steps:
+  - id: first-claim
+    input: |
+      Met Liam O'Connor, principal engineer at Databricks. Based in Dublin.
+    expect:
+      files:
+        - path: "people/liam-oconnor.md"
+          frontmatter:
+            location: { contains: "Dublin" }
+            company: { contains: "Databricks" }
+
+  - id: contradiction
+    input: |
+      Quick call with Liam O'Connor. He mentioned he's actually been based
+      in Amsterdam for the past two years. Not sure where I got Dublin from.
+    expect:
+      files:
+        - path: "people/liam-oconnor.md"
+          # Contract: "FLAG contradictions with > [!warning] callouts —
+          # never silently overwrite."
+          file_contains: "> [!warning]"
+          file_any_of: ["Dublin", "Amsterdam"]

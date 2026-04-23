@@ -1,0 +1,26 @@
+name: raw-note-written
+description: |
+  Freeform ingest must persist the original text as a dated raw note under
+  ${raw_path}/{raw_sources[0]}/ — per SKILL.md: "save as a new .md file in
+  the first raw_sources directory: ${raw_path}/{raw_sources[0]}/
+  {YYYY-MM-DD}-{slug}.md". Compiled wiki pages should not replace the raw
+  audit trail.
+steps:
+  - id: ingest
+    input: |
+      Coffee with Zara Oduya today. She's a researcher at Anthropic working
+      on interpretability. Super sharp. Wants to collaborate on evals for
+      mechanistic interpretability tooling.
+    expect:
+      files:
+        # Compiled wiki page, as usual.
+        - path: "people/zara-oduya.md"
+          frontmatter:
+            company: { contains: "Anthropic" }
+        # Raw note should land under raw_path/daily/ with today's date and
+        # a slug derived from the interaction. Glob is loose to accommodate
+        # slug variations ("zara-oduya", "coffee-zara", etc.).
+        - path: "daily/*zara*.md"
+          root: "raw"
+          file_contains: "interpretability"
+          glob_count: { min: 1 }
