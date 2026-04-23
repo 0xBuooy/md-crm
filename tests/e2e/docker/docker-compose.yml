@@ -1,0 +1,42 @@
+# Compose file for e2e tests. Run from repo root via the Makefile targets
+# (`make test-docker`, `make test-docker-hermes`, `make test-docker-openclaw`)
+# or directly: `docker compose -f tests/e2e/docker/docker-compose.yml run --rm hermes`.
+#
+# Env vars (ANTHROPIC_API_KEY, E2E_FILTER, *_AGENT_CMD) are loaded from the
+# repo-root `.env` (if present) and from the invoking shell. See .env.example
+# at the repo root.
+
+services:
+  hermes:
+    build:
+      context: .
+      dockerfile: Dockerfile.hermes
+    image: md-crm-e2e-hermes:latest
+    env_file:
+      - path: ../../../.env
+        required: false
+    environment:
+      E2E_FILTER: ${E2E_FILTER:-}
+      E2E_MODEL: ${E2E_MODEL:-claude-sonnet-4-6}
+      HERMES_AGENT_CMD: ${HERMES_AGENT_CMD:-}
+    volumes:
+      # Mounted rw because `hermes skills install` writes metadata back into
+      # the source dir. Runners otherwise only touch mktemp'd wiki/raw dirs.
+      - ../../..:/workspace
+    working_dir: /workspace
+
+  openclaw:
+    build:
+      context: .
+      dockerfile: Dockerfile.openclaw
+    image: md-crm-e2e-openclaw:latest
+    env_file:
+      - path: ../../../.env
+        required: false
+    environment:
+      E2E_FILTER: ${E2E_FILTER:-}
+      E2E_MODEL: ${E2E_MODEL:-claude-sonnet-4-6}
+      OPENCLAW_AGENT_CMD: ${OPENCLAW_AGENT_CMD:-}
+    volumes:
+      - ../../..:/workspace
+    working_dir: /workspace

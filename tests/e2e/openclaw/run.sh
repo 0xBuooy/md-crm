@@ -15,6 +15,11 @@
 
 set -euo pipefail
 
+if [[ -z "${OPENCLAW_AGENT_CMD:-}" ]] && ! command -v openclaw >/dev/null 2>&1; then
+  echo "[openclaw-e2e] openclaw CLI not found on PATH. Install OpenClaw or set OPENCLAW_AGENT_CMD to a valid openclaw command." >&2
+  exit 127
+fi
+
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 TESTS_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
 REPO_ROOT=$(cd "$TESTS_DIR/../.." && pwd)
@@ -50,9 +55,11 @@ EOF
 
 export OPENCLAW_HOME="$TMP/.openclaw"
 
-AGENT_CMD="${OPENCLAW_AGENT_CMD:-openclaw run --skill md-crm --non-interactive}"
+E2E_MODEL="${E2E_MODEL:-claude-sonnet-4-6}"
+AGENT_CMD="${OPENCLAW_AGENT_CMD:-openclaw run --skill md-crm --non-interactive --model $E2E_MODEL}"
 
 echo "[openclaw-e2e] wiki=$WIKI_PATH raw=$RAW_PATH"
+echo "[openclaw-e2e] model=$E2E_MODEL"
 echo "[openclaw-e2e] agent-cmd=$AGENT_CMD"
 
 python3 "$TESTS_DIR/lib/run_transcript.py" \

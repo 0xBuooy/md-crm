@@ -15,6 +15,11 @@
 
 set -euo pipefail
 
+if [[ -z "${HERMES_AGENT_CMD:-}" ]] && ! command -v hermes >/dev/null 2>&1; then
+  echo "[hermes-e2e] hermes CLI not found on PATH. Install Hermes or set HERMES_AGENT_CMD to a valid hermes command." >&2
+  exit 127
+fi
+
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 TESTS_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
 REPO_ROOT=$(cd "$TESTS_DIR/../.." && pwd)
@@ -37,11 +42,31 @@ skills:
 EOF
 
 echo "[hermes-e2e] installing skill from $REPO_ROOT"
-hermes skills install "$REPO_ROOT"
+# Newer hermes `skills install` only accepts registry identifiers. Local skills
+# are picked up from $HERMES_HOME/skills/<name>/, so symlink the checkout there.
+mkdir -p "$HERMES_HOME/skills"
+ln -sfn "$REPO_ROOT" "$HERMES_HOME/skills/md-crm"
 
-AGENT_CMD="${HERMES_AGENT_CMD:-hermes chat --skill md-crm --non-interactive}"
+E2E_MODEL="${E2E_MODEL:-claude-sonnet-4-6}"
+
+if [[ -z "${HERMES_AGENT_CMD:-}" ]]; then
+  # hermes chat takes the prompt as -q ARG (not stdin). Wrap so the transcript
+  # runner's stdin-based invocation still works.
+  WRAPPER="$TMP/hermes-oneshot.sh"
+  cat > "$WRAPPER" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+prompt=\$(cat)
+exec hermes chat -s md-crm -Q --model "$E2E_MODEL" -q "\$prompt"
+EOF
+  chmod +x "$WRAPPER"
+  AGENT_CMD="$WRAPPER"
+else
+  AGENT_CMD="$HERMES_AGENT_CMD"
+fi
 
 echo "[hermes-e2e] wiki=$WIKI_PATH raw=$RAW_PATH"
+echo "[hermes-e2e] model=$E2E_MODEL"
 echo "[hermes-e2e] agent-cmd=$AGENT_CMD"
 
 python3 "$TESTS_DIR/lib/run_transcript.py" \

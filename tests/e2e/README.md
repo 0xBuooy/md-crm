@@ -71,10 +71,34 @@ E2E_FILTER=lint       ./tests/e2e/openclaw/run.sh
 ./tests/e2e/hermes/run.sh -v
 ```
 
-Each wrapper creates an isolated temp dir, points the agent's config at it,
-installs the skill from the current checkout, and invokes the runner. The
-runner wipes `wiki_path` and `raw_path` between transcripts so scenarios
-don't contaminate each other. No user state is touched.
+### Docker
+
+Both suites also run in Docker — no host install of Hermes or OpenClaw
+required. The repo is mounted read-only and the agents write only to temp
+dirs inside the container.
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+make docker-build                   # first time; cached thereafter
+
+make test-docker                    # both suites
+make test-docker-hermes
+make test-docker-openclaw
+
+# Filter works the same way
+E2E_FILTER=lint make test-docker-hermes
+```
+
+Images: `tests/e2e/docker/Dockerfile.{hermes,openclaw}`. Python deps are
+installed with `uv` into `/opt/venv`. Compose file lives at
+`tests/e2e/docker/docker-compose.yml`; copy `.env.example` → `.env` next to
+it if you prefer a file to env vars.
+
+Each run creates an isolated temp dir (inside the container or the host
+tmp), points the agent's config at it, installs the skill from the current
+checkout, and invokes the runner. The runner wipes `wiki_path` and
+`raw_path` between transcripts so scenarios don't contaminate each other.
+No user state is touched.
 
 If your build uses different flags for one-shot / non-interactive mode:
 
